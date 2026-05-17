@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BNP Paribas Securities | Transaction Lifecycle Dashboard</title>
+  <meta name="description"
+    content="Real-time transaction lifecycle monitoring dashboard for BNP Paribas Securities — multi-asset KPI tracking across Capture, Confirmation, Settlement and Reconciliation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="bnp-logo">
+        <div class="logo-mark">
+          <span class="logo-star">★</span>
+        </div>
+        <div class="logo-text">
+          <span class="logo-bnp">BNP PARIBAS</span>
+          <span class="logo-sub">Securities Services</span>
+        </div>
+      </div>
+      <div class="header-divider"></div>
+      <div class="dashboard-title-group">
+        <h1 class="dashboard-title">Transaction Lifecycle Dashboard</h1>
+        <span class="dashboard-subtitle">Multi-Asset Operations Monitoring</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        Live
+      </div>
+      <!-- Notification bell icon injected here by notifications.js -->
+      <div class="header-time" id="headerTime"></div>
+      <div class="header-user">
+        <div class="user-avatar">OP</div>
+        <span>Ops Manager</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label class="filter-label">Asset Type</label>
+      <div class="filter-chips" id="assetFilter">
+        <button class="chip active" data-value="all">All</button>
+        <button class="chip" data-value="Cash">Cash</button>
+        <button class="chip" data-value="FX">FX</button>
+        <button class="chip" data-value="Derivatives">Derivatives</button>
+        <button class="chip" data-value="Money Markets">Money Markets</button>
+        <button class="chip" data-value="Securities">Securities</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Client</label>
+      <select class="filter-select" id="clientFilter">
+        <option value="all">All Clients</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Cut-Off Window</label>
+      <div class="filter-chips" id="cutoffFilter">
+        <button class="chip active" data-value="all">All</button>
+        <button class="chip chip-warn" data-value="overdue">Overdue</button>
+        <button class="chip chip-alert" data-value="critical">Critical (&lt;2h)</button>
+        <button class="chip" data-value="today">Today</button>
+        <button class="chip" data-value="24h">Next 24h</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Cut-Off Time Interval</label>
+      <div class="cutoff-time-dropdown" id="cutoffTimeDropdown">
+        <button class="cutoff-time-trigger" id="cutoffTimeTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span id="cutoffTimeLabel">All Day</span>
+          <span class="cutoff-time-arrow">&#9660;</span>
+        </button>
+        <div class="cutoff-time-panel" id="cutoffTimePanel" role="listbox">
+          <button class="cutoff-time-option active" data-start="-1" data-end="-1" role="option" aria-selected="true">All Day</button>
+          <button class="cutoff-time-option" data-start="0" data-end="5" role="option" aria-selected="false">00:00 – 05:00</button>
+          <button class="cutoff-time-option" data-start="5" data-end="10" role="option" aria-selected="false">05:00 – 10:00</button>
+          <button class="cutoff-time-option" data-start="10" data-end="14" role="option" aria-selected="false">10:00 – 14:00</button>
+          <button class="cutoff-time-option" data-start="14" data-end="18" role="option" aria-selected="false">14:00 – 18:00</button>
+          <button class="cutoff-time-option" data-start="18" data-end="24" role="option" aria-selected="false">18:00 – 24:00</button>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Workflow Stage</label>
+      <select class="filter-select" id="stageFilter">
+        <option value="all">All Stages</option>
+        <option value="Capture">Capture</option>
+        <option value="Confirmation">Confirmation</option>
+        <option value="Settlement">Settlement</option>
+        <option value="Reconciliation">Reconciliation</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+    <button class="btn-reset" id="resetFilters">↺ Reset</button>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="main-content">
+    <div class="kpi-row">
+      <div class="kpi-card" id="kpi-total">
+        <div class="kpi-icon icon-blue">⬡</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Total Transactions</span>
+          <span class="kpi-value" id="kpi-total-val">—</span>
+          <span class="kpi-delta positive">↑ vs yesterday</span>
+        </div>
+      </div>
+      <div class="kpi-card" id="kpi-pending">
+        <div class="kpi-icon icon-orange">⏳</div>
+        <div class="kpi-body">
+          <span class="kpi-label">In Progress</span>
+          <span class="kpi-value" id="kpi-pending-val">—</span>
+          <span class="kpi-delta neutral">Active workflows</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-alert-card" id="kpi-atrisk">
+        <div class="kpi-icon icon-red">⚠</div>
+        <div class="kpi-body">
+          <span class="kpi-label">At Risk</span>
+          <span class="kpi-value" id="kpi-atrisk-val">—</span>
+          <span class="kpi-delta negative" id="kpi-atrisk-sub">Overdue, critical or manual</span>
+        </div>
+      </div>
+      <div class="kpi-card" id="kpi-manual">
+        <div class="kpi-icon icon-purple">✋</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Manual Intervention</span>
+          <span class="kpi-value" id="kpi-manual-val">—</span>
+          <span class="kpi-delta negative">Require attention</span>
+        </div>
+      </div>
+      <div class="kpi-card" id="kpi-completed">
+        <div class="kpi-icon icon-green">✔</div>
+        <div class="kpi-body">
+          <span class="kpi-label">Completed</span>
+          <span class="kpi-value" id="kpi-completed-val">—</span>
+          <span class="kpi-delta positive">STP rate: <span id="stp-rate">—</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="charts-row">
+      <div class="chart-card chart-wide">
+        <div class="chart-header">
+          <h2 class="chart-title">Transaction Volume by Stage</h2>
+          <span class="chart-subtitle">Current distribution across lifecycle stages</span>
+        </div>
+        <div id="stageBarChart" style="height:260px;"></div>
+      </div>
+      <div class="chart-card chart-narrow">
+        <div class="chart-header">
+          <h2 class="chart-title">Asset Mix</h2>
+          <span class="chart-subtitle">By transaction count</span>
+        </div>
+        <div id="assetDonutChart" style="height:260px;"></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="charts-row">
+      <div class="chart-card chart-medium">
+        <div class="chart-header">
+          <h2 class="chart-title">Avg. Processing Time per Stage</h2>
+          <span class="chart-subtitle">Minutes — bottleneck identification</span>
+        </div>
+        <div id="avgTimeChart" style="height:260px;"></div>
+      </div>
+      <div class="chart-card chart-medium">
+        <div class="chart-header">
+          <h2 class="chart-title">Transaction Flow Funnel</h2>
+          <span class="chart-subtitle">Volume progression through lifecycle</span>
+        </div>
+        <div id="funnelChart" style="height:260px;"></div>
+      </div>
+    </div>
+
+    <!-- VALUE ANALYSIS ROW -->
+    <div class="charts-row">
+      <div class="chart-card chart-medium">
+        <div class="chart-header">
+          <h2 class="chart-title">Exposure by Lifecycle Stage</h2>
+          <span class="chart-subtitle">Total notional at each stage (€ Million)</span>
+        </div>
+        <div id="exposureStageChart" style="height:220px;"></div>
+      </div>
+      <div class="chart-card chart-medium">
+        <div class="chart-header">
+          <h2 class="chart-title">Top Transactions by Value at Risk</h2>
+          <span class="chart-subtitle">Largest notional — overdue 🔴 · critical 🟠 · manual 🟣 &nbsp;·&nbsp; click to
+            inspect</span>
+        </div>
+        <div id="topAtRiskChart" style="height:220px;"></div>
+      </div>
+    </div>
+
+    <!-- HISTORICAL VOLUME CHART -->
+    <div class="charts-row">
+      <div class="chart-card" style="flex:1;">
+        <div class="chart-header">
+          <h2 class="chart-title">Daily Transaction Volume — Last 14 Days</h2>
+          <span class="chart-subtitle">Number of transactions per day · <span
+              style="color:#e53935;font-weight:600;">●</span> Peak day &nbsp;·&nbsp; <span id="historicalChartSubtitle"
+              class="chart-subtitle-dynamic">All transactions · last 14 days</span></span>
+        </div>
+        <div id="historicalVolumeChart" style="height:220px;"></div>
+      </div>
+    </div>
+
+    <!-- ALERTS ROW -->
+    <div class="alerts-section">
+      <div class="alerts-header">
+        <h2 class="section-title">⚠ Risk & Alert Monitor</h2>
+        <span class="alert-count" id="alert-count-badge">—</span>
+      </div>
+      <div class="alerts-strip" id="alertsStrip"></div>
+    </div>
+
+    <!-- TRANSACTION TABLE -->
+    <div class="table-card">
+      <div class="table-header-row">
+        <div>
+          <h2 class="chart-title">Transaction Register</h2>
+          <span class="chart-subtitle">Click any row to view full workflow timeline</span>
+        </div>
+        <div class="table-controls">
+          <input type="text" class="search-input" id="tableSearch" placeholder="🔍  Search ID, client, asset..." />
+          <span class="row-count" id="rowCount">— rows</span>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table" id="txTable">
+          <thead>
+            <tr>
+              <th>Tx ID</th>
+              <th>Asset Type</th>
+              <th>Client</th>
+              <th>Client ID</th>
+              <th>Current Stage</th>
+              <th>Time in Stage</th>
+              <th>Cut-Off</th>
+              <th>Status</th>
+              <th>Manual</th>
+              <th>STP</th>
+            </tr>
+          </thead>
+          <tbody id="txTableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination-row">
+        <button class="btn-page" id="prevPage">← Prev</button>
+        <span class="page-info" id="pageInfo">Page 1</span>
+        <button class="btn-page" id="nextPage">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTION DETAIL MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="modalTitle">Transaction Detail</h2>
+          <span class="modal-sub" id="modalSub"></span>
+        </div>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-meta modal-meta-3row" id="modalMeta"></div>
+      <div class="modal-section-title">Workflow Timeline</div>
+      <div class="timeline-container" id="timelineContainer"></div>
+      <div class="modal-section-title" style="margin-top:24px;">Time per Stage Breakdown</div>
+      <div id="txDetailChart" style="height:200px; margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="notifications.js"></script>
+</body>
+
+</html>
