@@ -29,5 +29,5 @@ Provides a real-time, high-level view of transaction flow from Capture through t
 3. Open `index.html` in any web browser.
 
 ## Tech Stack
-- Java · Python · Cloudflare Workers
+- Java · Python · CSS
 - Built with AI-assisted development using Google Antigravity
