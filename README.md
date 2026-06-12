@@ -40,5 +40,4 @@ The dashboard auto-refreshes every **60 seconds**, recalculating all risk data b
 ## Tech Stack
 
 - HTML · CSS · JavaScript
-- [ApexCharts](https://apexcharts.com/) for all charts
 - Built with AI-assisted development during the BNP Paribas DRIVE Mentoring Programme
